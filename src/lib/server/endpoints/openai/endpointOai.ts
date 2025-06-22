@@ -16,6 +16,7 @@ import type { MessageFile } from "$lib/types/Message";
 import { type Tool } from "$lib/types/Tool";
 import type { EndpointMessage } from "../endpoints";
 import { v4 as uuidv4 } from "uuid";
+import { zodResponseFormatAITutor } from "./itCertificationTutorReponseSchema";
 function createChatCompletionToolsArray(tools: Tool[] | undefined): ChatCompletionTool[] {
 	const toolChoices = [] as ChatCompletionTool[];
 	if (tools === undefined) {
@@ -248,8 +249,12 @@ export async function endpointOai(
 			}
 
 			const parameters = { ...model.parameters, ...generateSettings };
+
+			let responseFormat;
+
 			const toolCallChoices = createChatCompletionToolsArray(tools);
-			const body: ChatCompletionCreateParamsStreaming = {
+
+			let body: ChatCompletionCreateParamsStreaming = {
 				model: model.id ?? model.name,
 				messages: messagesOpenAI,
 				stream: true,
@@ -264,6 +269,29 @@ export async function endpointOai(
 				...(toolCallChoices.length > 0 ? { tools: toolCallChoices, tool_choice: "auto" } : {}),
 			};
 
+			if (parameters?.response_format?.type === 'json_schema') {
+				console.log('response format schema is: ', parameters?.response_format?.schema);
+				switch (parameters?.response_format?.schema) {
+					case "it_certification_tutor":
+						console.log('using it_certification_tutor schema');
+						body = { ...body, response_format: zodResponseFormatAITutor };
+						break
+				}
+			}
+
+			console.log(zodResponseFormatAITutor)
+
+			// console.log('OpenAI Request:', {
+			// 	messages: messagesOpenAI,
+			// 	model: model.id ?? model.name,
+			// 	temperature: parameters?.temperature,
+			// 	tools: toolCallChoices,
+			// 	response_format: parameters?.response_format,
+			// });
+
+			console.log('body is: ', body);
+			console.log('parameters', parameters)
+
 			const openChatAICompletion = await openai.chat.completions.create(body, {
 				body: { ...body, ...extraBody },
 				headers: {
@@ -272,7 +300,17 @@ export async function endpointOai(
 				},
 			});
 
-			return openAIChatToTextGenerationStream(openChatAICompletion);
+			// Create a copy of the stream that we can log
+			const stream = openAIChatToTextGenerationStream(openChatAICompletion);
+
+			const loggedStream = async function* () {
+				for await (const chunk of stream) {
+					// console.log('OpenAI Response Chunk:', chunk);
+					yield chunk;
+				}
+			};
+
+			return loggedStream();
 		};
 	} else {
 		throw new Error("Invalid completion type");

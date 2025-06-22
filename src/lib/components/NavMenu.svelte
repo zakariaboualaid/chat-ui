@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { base } from "$app/paths";
-
 	import Logo from "$lib/components/icons/Logo.svelte";
 	import { switchTheme } from "$lib/switchTheme";
 	import { isAborted } from "$lib/stores/isAborted";
@@ -9,7 +8,7 @@
 	import type { LayoutData } from "../../routes/$types";
 	import type { ConvSidebar } from "$lib/types/ConvSidebar";
 	import type { Model } from "$lib/types/Model";
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 	import InfiniteScroll from "./InfiniteScroll.svelte";
 	import type { Conversation } from "$lib/types/Conversation";
 	import { CONV_NUM_PER_PAGE } from "$lib/constants/pagination";
@@ -53,7 +52,7 @@
 		older: "Older",
 	} as const;
 
-	const nModels: number = $page.data.models.filter((el: Model) => !el.unlisted).length;
+	const nModels: number = page.data.models.filter((el: Model) => !el.unlisted).length;
 
 	async function handleVisible() {
 		p++;
@@ -93,7 +92,7 @@
 		<Logo classNames="mr-1" />
 		{envPublic.PUBLIC_APP_NAME}
 	</a>
-	{#if $page.url.pathname !== base + "/"}
+	{#if page.url.pathname !== base + "/"}
 		<a
 			href={`${base}/`}
 			onclick={handleNewChatClick}
@@ -104,10 +103,10 @@
 	{/if}
 </div>
 <div
-	class="scrollbar-custom flex flex-col gap-1 overflow-y-auto rounded-r-xl from-gray-50 px-3 pb-3 pt-2 text-[.9rem] dark:from-gray-800/30 max-sm:bg-gradient-to-t md:bg-gradient-to-l"
+	class="hidden scrollbar-custom flex flex-col gap-1 overflow-y-auto rounded-r-xl from-gray-50 px-3 pb-3 pt-2 text-[.9rem] dark:from-gray-800/30 max-sm:bg-gradient-to-t md:bg-gradient-to-l"
 >
 	{#await groupedConversations}
-		{#if $page.data.nConversations > 0}
+		{#if page.data.nConversations > 0}
 			<div class="overflow-y-hidden">
 				<div class="flex animate-pulse flex-col gap-4">
 					<div class="h-4 w-24 rounded bg-gray-200 dark:bg-gray-700"></div>
@@ -138,6 +137,12 @@
 <div
 	class="mt-0.5 flex flex-col gap-1 rounded-r-xl p-3 text-sm md:bg-gradient-to-l md:from-gray-50 md:dark:from-gray-800/30"
 >
+	<a
+		href="{base}/catalog"
+		class="flex h-9 flex-none items-center gap-1.5 rounded-lg pl-2.5 pr-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+	>
+		Catalog
+	</a>
 	{#if user?.username || user?.email}
 		<form
 			action="{base}/logout"
@@ -187,7 +192,7 @@
 			>
 		</a>
 	{/if}
-	{#if $page.data.enableAssistants}
+	{#if page.data.enableAssistants}
 		<a
 			href="{base}/assistants"
 			class="flex h-9 flex-none items-center gap-1.5 rounded-lg pl-2.5 pr-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
@@ -195,7 +200,7 @@
 			Assistants
 		</a>
 	{/if}
-	{#if $page.data.enableCommunityTools}
+	{#if page.data.enableCommunityTools}
 		<a
 			href="{base}/tools"
 			class="flex h-9 flex-none items-center gap-1.5 rounded-lg pl-2.5 pr-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"

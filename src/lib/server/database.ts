@@ -14,6 +14,7 @@ import type { MigrationResult } from "$lib/types/MigrationResult";
 import type { Semaphore } from "$lib/types/Semaphore";
 import type { AssistantStats } from "$lib/types/AssistantStats";
 import type { CommunityToolDB } from "$lib/types/Tool";
+import type { StudyGuide } from "$lib/types/StudyGuide";
 
 import { logger } from "$lib/server/logger";
 import { building } from "$app/environment";
@@ -88,6 +89,7 @@ export class Database {
 		const semaphores = db.collection<Semaphore>("semaphores");
 		const tokenCaches = db.collection<TokenCache>("tokens");
 		const tools = db.collection<CommunityToolDB>("tools");
+		const studyGuides = db.collection<StudyGuide>("studyGuides");
 
 		return {
 			conversations,
@@ -106,6 +108,7 @@ export class Database {
 			semaphores,
 			tokenCaches,
 			tools,
+			studyGuides,
 		};
 	}
 

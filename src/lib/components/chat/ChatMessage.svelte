@@ -30,6 +30,8 @@
 	import OpenReasoningResults from "./OpenReasoningResults.svelte";
 	import Alternatives from "./Alternatives.svelte";
 	import Vote from "./Vote.svelte";
+	import Quiz from "./Quiz.svelte";
+	import Explanation from "./Explanation.svelte";
 
 	interface Props {
 		message: Message;
@@ -126,6 +128,14 @@
 			}
 		}
 	});
+
+	const messageContent = $derived.by(() => {
+		try {
+			return JSON.parse(message.content);
+		} catch (e) {
+			return message.content;
+		}
+	});
 </script>
 
 {#if message.from === "assistant"}
@@ -196,7 +206,21 @@
 				<div
 					class="prose max-w-none dark:prose-invert max-sm:prose-sm prose-headings:font-semibold prose-h1:text-lg prose-h2:text-base prose-h3:text-base prose-pre:bg-gray-800 dark:prose-pre:bg-gray-900"
 				>
-					<MarkdownRenderer content={message.content} sources={webSearchSources} />
+					{#if messageContent?.response?.type === "quiz"}
+						<span class="text-xs text-gray-700">quiz</span>
+						<Quiz {message} />
+					{:else if messageContent?.response?.type === "explanation"}
+						<span class="text-xs text-gray-700">explanation</span>
+						<Explanation {message} />
+					{:else if messageContent?.response?.type === "text"}
+						<span class="text-xs text-gray-700">markdown</span>
+						<MarkdownRenderer content={messageContent?.response?.text} sources={webSearchSources} />
+					{:else}
+						<span class="text-xs text-gray-700">other</span>
+						<div>
+							{messageContent}
+						</div>
+					{/if}
 				</div>
 			</div>
 

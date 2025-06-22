@@ -20,7 +20,10 @@ export async function buildPrompt({
 
 	if (filteredMessages[0].from === "system" && preprompt) {
 		filteredMessages[0].content = preprompt;
+		console.log('System prompt (preprompt):', preprompt);
 	}
+
+	console.log('Building prompt with messages:', filteredMessages);
 
 	let prompt = model
 		.chatPromptRender({

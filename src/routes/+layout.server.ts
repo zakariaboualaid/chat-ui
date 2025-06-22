@@ -48,26 +48,28 @@ export const load: LayoutServerLoad = async ({ locals, depends, fetch }) => {
 
 	const assistant = assistantActive
 		? await collections.assistants.findOne({
-				_id: new ObjectId(settings?.activeModel),
-			})
+			_id: new ObjectId(settings?.activeModel),
+		})
 		: null;
 
 	const nConversations = await collections.conversations.countDocuments(authCondition(locals));
+
+	const studyGuides = collections.studyGuides.find({}).toArray();
 
 	const conversations =
 		nConversations === 0
 			? Promise.resolve([])
 			: fetch(`${base}/api/conversations`)
-					.then((res) => res.json())
-					.then(
-						(
-							convs: Pick<Conversation, "_id" | "title" | "updatedAt" | "model" | "assistantId">[]
-						) =>
-							convs.map((conv) => ({
-								...conv,
-								updatedAt: new Date(conv.updatedAt),
-							}))
-					);
+				.then((res) => res.json())
+				.then(
+					(
+						convs: Pick<Conversation, "_id" | "title" | "updatedAt" | "model" | "assistantId">[]
+					) =>
+						convs.map((conv) => ({
+							...conv,
+							updatedAt: new Date(conv.updatedAt),
+						}))
+				);
 
 	const userAssistants = settings?.assistants?.map((assistantId) => assistantId.toString()) ?? [];
 	const userAssistantsSet = new Set(userAssistants);
@@ -280,5 +282,11 @@ export const load: LayoutServerLoad = async ({ locals, depends, fetch }) => {
 		loginRequired,
 		loginEnabled: requiresUser,
 		guestMode: requiresUser && messagesBeforeLogin > 0,
+		studyGuides: studyGuides.then((sgs) => {
+			return sgs.map((sg) => ({
+				...sg,
+				_id: sg._id.toString(),
+			}));
+		})
 	};
 };

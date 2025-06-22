@@ -16,9 +16,9 @@ import { initExitHandler } from "$lib/server/exitHandler";
 import { ObjectId } from "mongodb";
 import { refreshAssistantsCounts } from "$lib/jobs/refresh-assistants-counts";
 import { refreshConversationStats } from "$lib/jobs/refresh-conversation-stats";
+import type { ServerInit } from '@sveltejs/kit';
 
-// TODO: move this code on a started server hook, instead of using a "building" flag
-if (!building) {
+export const init: ServerInit = async () => {
 	// Set HF_TOKEN as a process variable for Transformers.JS to see it
 	process.env.HF_TOKEN ??= env.HF_TOKEN;
 
@@ -36,7 +36,7 @@ if (!building) {
 
 	// Init AbortedGenerations refresh process
 	AbortedGenerations.getInstance();
-}
+};
 
 export const handleError: HandleServerError = async ({ error, event, status, message }) => {
 	// handle 404
